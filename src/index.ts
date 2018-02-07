@@ -149,6 +149,133 @@ export interface IDepartmentList extends ICommomReturn {
   departments: IDepartment[]
 }
 
+export interface IDepartmentAdd extends ICommomReturn {
+  departmentId: number
+  order: number
+}
+
+export interface IUserSimpleList extends ICommomReturn {
+  userlist: {
+    /**
+     * 开放平台员工帐号
+     */
+    openUserId: string
+    /**
+     * 员工姓名
+     */
+    name: string
+  }[]
+}
+
+export interface ICrmObjectList extends ICommomReturn {
+  /**
+   * 对象列表（对象类型数组）
+   */
+  objects: {
+    /**
+     * 对象api名称(自定义对象api_name以__c结尾)
+     */
+    api_name: string
+    /**
+     * 对象显示名称
+     */
+    display_name: string
+  }[]
+}
+
+export interface IEmbeddedFieldDesc {
+  type: 'object_reference' | 'email' | 'phone_number' | 'true_or_false' | 'text' | 'long_text' | 'date_time' | 'number' | 'select_one' | 'select_many' | 'file_attachment' | 'image' | 'employee' | 'country' | 'province' | 'city' | 'district'
+  define_type: 'system' | 'package' | 'custom'
+  is_index: boolean
+  round_mode: number
+  length: number
+  is_need_convert: boolean
+  decimal_places: number
+  is_unique: boolean
+  is_required: boolean
+  max_length: number
+  pattern: string
+  api_name: string
+  label: string
+  description: string
+}
+
+export interface IFieldDesc {
+  /**
+   * 字段类型
+   */
+  type: 'object_reference' | 'email' | 'phone_number' | 'true_or_false' | 'text' | 'long_text' | 'date_time' | 'number' | 'select_one' | 'select_many' | 'embedded_object_list' | 'file_attachment' | 'image' | 'employee' | 'country' | 'province' | 'city' | 'district'
+  /**
+   * 内嵌字段
+   */
+  embedded_fields?: {
+    [name: string]: IEmbeddedFieldDesc
+  }
+  /**
+   * 定义类型
+   * system:系统内置，package:包（业务应用）定义，custom:企业客户定义
+   */
+  define_type: 'system' | 'package' | 'custom'
+  /**
+   * 字段api_name
+   * 用于数据操作时对字段的唯一标识
+   */
+  api_name: string
+  /**
+   * 是否必填
+   * 添加时候是否必须输入
+   */
+  is_required: boolean
+  /**
+   * 是否启用
+   * 用于表示该字段是否生效，false表示该字段被隐藏(禁用)，管理员可以从字段管理中打开
+   */
+  is_active: boolean
+  /**
+   * 是否自动编号
+   * 自动编号的字段添加、更新时不允许输入
+   */
+  is_auto_number?: boolean
+  /**
+   * 是否需要转换
+   * 需要转换的字段,输入和返回值都是合法的openUserId
+   */
+  is_need_convert: boolean
+  /**
+   * 字段描述
+   */
+  description: string
+  /**
+   * 帮助信息
+   */
+  help_text: string
+  /**
+   * 字段显示名称
+   */
+  label: string
+}
+
+export interface ICrmObjectDescribe extends ICommomReturn {
+  objectDesc: {
+    fields: {
+      [name: string]: IFieldDesc
+    }
+  }
+}
+
+export interface ICrmDataQuery {
+  /**
+   * 总记录数
+   */
+  totalNumber: number
+  /**
+   * 数据列表
+   */
+  datas: {
+    [name: string]: any
+  }[]
+}
+
 const ApiHost = '${ApiHost}'
 
 export class fxiaoke extends RequestBase.RequestBase {
@@ -269,7 +396,7 @@ export class fxiaoke extends RequestBase.RequestBase {
    * @param parentId 父部门ID(顶级部门为 0)
    * @param principalOpenUserId 部门负责人开放平台员工账号
    */
-  departmentAdd(name: string, parentId: number, principalOpenUserId?: string) {
+  departmentAdd(name: string, parentId: number, principalOpenUserId?: string): Promise<IDepartmentAdd> {
     return this.initCorpAccessToken().then(() => {
       return this.request(`${ApiHost}/cgi/department/add`, {
         ...this.commonRequestOptions,
@@ -283,7 +410,7 @@ export class fxiaoke extends RequestBase.RequestBase {
           },
         }),
       })
-    })
+    }) as Promise<IDepartmentAdd>
   }
 
   /**
@@ -292,7 +419,7 @@ export class fxiaoke extends RequestBase.RequestBase {
    * @param departmentId 部门ID, 为非负整数
    * @param fetchChild 如果为true，则同时获取其所有子部门员工; 如果为false或者不传，则只获取当前部门员工
    */
-  userSimpleList(departmentId: number, fetchChild?: boolean) {
+  userSimpleList(departmentId: number, fetchChild?: boolean): Promise<IUserSimpleList> {
     return this.initCorpAccessToken().then(() => {
       return this.request(`${ApiHost}/cgi/user/simpleList`, {
         ...this.commonRequestOptions,
@@ -303,7 +430,7 @@ export class fxiaoke extends RequestBase.RequestBase {
           fetchChild: fetchChild,
         }),
       })
-    })
+    }) as Promise<IUserSimpleList>
   }
 
   /**
@@ -312,7 +439,7 @@ export class fxiaoke extends RequestBase.RequestBase {
    * @see http://open.fxiaoke.com/wiki.html#artiId=207
    * @param currentOpenUserId 当前操作人的openUserId
    */
-  crmObjectList(currentOpenUserId: string) {
+  crmObjectList(currentOpenUserId: string): Promise<ICrmObjectList> {
     return this.initCorpAccessToken().then(() => {
       return this.request(`${ApiHost}/cgi/crm/object/list`, {
         ...this.commonRequestOptions,
@@ -322,7 +449,7 @@ export class fxiaoke extends RequestBase.RequestBase {
           currentOpenUserId: currentOpenUserId,
         }),
       })
-    })
+    }) as Promise<ICrmObjectList>
   }
 
   /**
@@ -331,7 +458,7 @@ export class fxiaoke extends RequestBase.RequestBase {
    * @param currentOpenUserId 当前操作人的openUserId
    * @param apiName 对象的api_name
    */
-  crmObjectDescribe(currentOpenUserId: string, apiName: string) {
+  crmObjectDescribe(currentOpenUserId: string, apiName: string): Promise<ICrmObjectDescribe> {
     return this.initCorpAccessToken().then(() => {
       return this.request(`${ApiHost}/cgi/crm/object/describe`, {
         ...this.commonRequestOptions,
@@ -342,14 +469,14 @@ export class fxiaoke extends RequestBase.RequestBase {
           apiName: apiName,
         }),
       })
-    })
+    }) as Promise<ICrmObjectDescribe>
   }
   /**
    * 查询对象数据
    * @see http://open.fxiaoke.com/wiki.html#artiId=207
    * @param params 请求参数
    */
-  crmDataQuery(params: ICrmDataQueryParams) {
+  crmDataQuery(params: ICrmDataQueryParams): Promise<ICrmDataQuery> {
     return this.initCorpAccessToken().then(() => {
       return this.request(`${ApiHost}/cgi/crm/data/query`, {
         ...this.commonRequestOptions,
@@ -360,7 +487,7 @@ export class fxiaoke extends RequestBase.RequestBase {
           apiName: params.apiName,
         }),
       })
-    })
+    }) as Promise<ICrmDataQuery>
   }
 
 }
