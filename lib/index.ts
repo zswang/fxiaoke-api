@@ -1,4 +1,53 @@
 import * as RequestBase from 'irequest'
+export interface ICrmCommonParams {
+  /**
+   * 当前操作人的openUserId(对于公海中未分配的客户,需为公海管理员身份)
+   */
+  currentOpenUserId: string
+  /**
+   * 对象的api_name
+   */
+  apiName: string
+}
+export interface ICrmSearchQueryCondition {
+  /**
+   * term_condition:表示精确匹配(目前只支持这种)
+   */
+  conditionType: "term_condition"
+  conditions: {
+    [name: string]: any
+  }
+}
+export interface ICrmSearchQueryRangeCondition {
+  fieldName: string
+  from: string
+  to: string
+}
+export interface ICrmSearchQueryOrder {
+  /**
+   * true 表示正序 false 表示倒序
+   */
+  ascending: boolean
+  /**
+   * 字段名
+   */
+  field: string
+}
+export interface ICrmSearchQuery {
+  currentOpenUserId: string
+  apiName: string
+  conditions: ICrmSearchQueryCondition[]
+  dataProjection: {
+    fieldNames: string[]
+  }
+  limit: number
+  offset: number
+  orders: ICrmSearchQueryOrder
+  rangeConditions: ICrmSearchQueryRangeCondition[]
+}
+export interface ICrmDataQueryParams extends ICrmCommonParams {
+  searchQuery: ICrmSearchQuery
+}
 export interface fxiaokeOptions {
   /**
    * 是否开启调试信息
@@ -17,6 +66,76 @@ export interface fxiaokeOptions {
    */
   permanentCode: string
 }
+export interface ICommomReturn {
+  /**
+   * 返回码
+   */
+  errorCode: number
+  /**
+   * 对返回码的文本描述内容
+   */
+  errorMessage: string
+}
+export interface IGetCorpAccessToken extends ICommomReturn {
+  /**
+   * 企业应用访问公司合法性凭证
+   */
+  corpAccessToken: string
+  /**
+   * 开放平台派发的公司帐号
+   */
+  corpId: string
+  /**
+   * 企业应用访问公司合法性凭证的过期时间，单位为秒，取值在0~7200之间
+   */
+  expiresIn: number
+}
+export interface IGetAppAccessToken extends ICommomReturn {
+  /**
+   * 企业应用获取到的凭证
+   */
+  appAccessToken: string
+  /**
+   * 企业应用获取到的凭证的过期时间，单位为秒，取值在0~2592000之间
+   */
+  expiresIn: number
+}
+export interface IGetJsApiTicket extends ICommomReturn {
+  /**
+   * 临时票据
+   */
+  ticket: string
+  /**
+   * ticket有效时间,以秒为单位
+   */
+  expiresIn: number
+}
+export interface IDepartment {
+  /**
+   * 部门ID
+   */
+  id: number
+  /**
+   * 部门名称
+   */
+  name: string
+  /**
+   * 父部门ID，根部门ID为0，其它部门Id为非负整数
+   */
+  parentId: number
+  /**
+   * 		是否停用（true表示停用，false表示正常）
+   */
+  isStop: boolean
+  /**
+   * 部门排序，序号越小，排序越靠前。最小值为1
+   */
+  order: number
+}
+export interface IDepartmentList extends ICommomReturn {
+  departments: IDepartment[]
+}
+const ApiHost = '${ApiHost}'
 export class fxiaoke extends RequestBase.RequestBase {
   options: fxiaokeOptions
   /**
@@ -31,37 +150,43 @@ export class fxiaoke extends RequestBase.RequestBase {
    * 企业应用访问公司合法性凭证到期时间
    */
   corpAccessTokenDeadline: number = 0
+  commonRequestOptions = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  }
   constructor(options: fxiaokeOptions) {
     super(options.debug)
     this.options = options
   }
   /**
    * 获取 CorpAccessToken
+   * @see http://open.fxiaoke.com/wiki.html#artiId=17
    */
-  getCorpAccessToken() {
-    return this.request(`https://open.fxiaoke.com/cgi/corpAccessToken/get/V2`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+  getCorpAccessToken(): Promise<IGetCorpAccessToken> {
+    return this.request(`${ApiHost}/cgi/corpAccessToken/get/V2`, {
+      ...this.commonRequestOptions,
       body: JSON.stringify({
         appId: this.options.appId,
         appSecret: this.options.appSecret,
         permanentCode: this.options.permanentCode,
-      })
-    })
+      }),
+    }) as Promise<IGetCorpAccessToken>
   }
-  getAppAccessToken() {
-    return this.request(`https://open.fxiaoke.com/cgi/appAccessToken/get`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+  /**
+   * 获取 AppAccessToken
+   * AppAccessToken是应用的全局唯一票据，需要AppId和AppSecret来换取，不同的AppSecret会返回不同的AppAccessToken
+   * @see http://open.fxiaoke.com/wiki.html#artiId=17
+   */
+  getAppAccessToken(): Promise<IGetAppAccessToken> {
+    return this.request(`${ApiHost}/cgi/appAccessToken/get`, {
+      ...this.commonRequestOptions,
       body: JSON.stringify({
         appId: this.options.appId,
         appSecret: this.options.appSecret,
-      })
-    })
+      }),
+    }) as Promise<IGetAppAccessToken>
   }
   initCorpAccessToken() {
     return Promise.resolve().then(() => {
@@ -70,10 +195,10 @@ export class fxiaoke extends RequestBase.RequestBase {
         return
       }
       return this.getCorpAccessToken().then(reply => {
-        if (reply['errorCode'] !== 0) {
+        if (reply.errorCode !== 0) {
           return Promise.reject({
             status: 400,
-            stack: ['<jdists encoding="md5">fxiaoke-api/src/index.ts:82</jdists>'],
+            stack: ['6aba4c44787dbdbb88c03ba6ac4c48fa'],
             desc: reply['errorMessage'],
           })
         }
@@ -83,37 +208,35 @@ export class fxiaoke extends RequestBase.RequestBase {
       })
     })
   }
-  getJsApiTicket() {
+  /**
+   * 获取 JsapiTicket
+   * @see http://open.fxiaoke.com/wiki.html#artiId=17
+   */
+  getJsApiTicket(): Promise<IGetJsApiTicket> {
     return this.initCorpAccessToken().then(() => {
-      return this.request(`https://open.fxiaoke.com/cgi/jsApiTicket/get`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      return this.request(`${ApiHost}/cgi/jsApiTicket/get`, {
+        ...this.commonRequestOptions,
         body: JSON.stringify({
           corpAccessToken: this.corpAccessToken,
           corpId: this.corpId,
-        })
+        }),
       })
-    })
+    }) as Promise<IGetJsApiTicket>
   }
   /**
    * 获取部门列表
    * @see http://open.fxiaoke.com/wiki.html#artiId=20
    */
-  departmentList() {
+  departmentList(): Promise<IDepartmentList> {
     return this.initCorpAccessToken().then(() => {
-      return this.request(`https://open.fxiaoke.com/cgi/department/list`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      return this.request(`${ApiHost}/cgi/department/list`, {
+        ...this.commonRequestOptions,
         body: JSON.stringify({
           corpAccessToken: this.corpAccessToken,
           corpId: this.corpId,
-        })
+        }),
       })
-    })
+    }) as Promise<IDepartmentList>
   }
   /**
    * 添加部门
@@ -124,11 +247,8 @@ export class fxiaoke extends RequestBase.RequestBase {
    */
   departmentAdd(name: string, parentId: number, principalOpenUserId?: string) {
     return this.initCorpAccessToken().then(() => {
-      return this.request(`https://open.fxiaoke.com/cgi/department/add`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      return this.request(`${ApiHost}/cgi/department/add`, {
+        ...this.commonRequestOptions,
         body: JSON.stringify({
           corpAccessToken: this.corpAccessToken,
           corpId: this.corpId,
@@ -137,7 +257,7 @@ export class fxiaoke extends RequestBase.RequestBase {
             parentId: parentId,
             principalOpenUserId: principalOpenUserId
           },
-        })
+        }),
       })
     })
   }
@@ -149,17 +269,14 @@ export class fxiaoke extends RequestBase.RequestBase {
    */
   userSimpleList(departmentId: number, fetchChild?: boolean) {
     return this.initCorpAccessToken().then(() => {
-      return this.request(`https://open.fxiaoke.com/cgi/user/simpleList`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      return this.request(`${ApiHost}/cgi/user/simpleList`, {
+        ...this.commonRequestOptions,
         body: JSON.stringify({
           corpAccessToken: this.corpAccessToken,
           corpId: this.corpId,
           departmentId: departmentId,
           fetchChild: fetchChild,
-        })
+        }),
       })
     })
   }
@@ -171,16 +288,13 @@ export class fxiaoke extends RequestBase.RequestBase {
    */
   crmObjectList(currentOpenUserId: string) {
     return this.initCorpAccessToken().then(() => {
-      return this.request(`https://open.fxiaoke.com/cgi/crm/object/list`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      return this.request(`${ApiHost}/cgi/crm/object/list`, {
+        ...this.commonRequestOptions,
         body: JSON.stringify({
           corpAccessToken: this.corpAccessToken,
           corpId: this.corpId,
           currentOpenUserId: currentOpenUserId,
-        })
+        }),
       })
     })
   }
@@ -192,17 +306,32 @@ export class fxiaoke extends RequestBase.RequestBase {
    */
   crmObjectDescribe(currentOpenUserId: string, apiName: string) {
     return this.initCorpAccessToken().then(() => {
-      return this.request(`https://open.fxiaoke.com/cgi/crm/object/describe`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      return this.request(`${ApiHost}/cgi/crm/object/describe`, {
+        ...this.commonRequestOptions,
         body: JSON.stringify({
           corpAccessToken: this.corpAccessToken,
           corpId: this.corpId,
           currentOpenUserId: currentOpenUserId,
           apiName: apiName,
-        })
+        }),
+      })
+    })
+  }
+  /**
+   * 查询对象数据
+   * @see http://open.fxiaoke.com/wiki.html#artiId=207
+   * @param params 请求参数
+   */
+  crmDataQuery(params: ICrmDataQueryParams) {
+    return this.initCorpAccessToken().then(() => {
+      return this.request(`${ApiHost}/cgi/crm/data/query`, {
+        ...this.commonRequestOptions,
+        body: JSON.stringify({
+          corpAccessToken: this.corpAccessToken,
+          corpId: this.corpId,
+          currentOpenUserId: params.currentOpenUserId,
+          apiName: params.apiName,
+        }),
       })
     })
   }
