@@ -1,5 +1,60 @@
 import * as RequestBase from 'irequest'
 
+export interface ICrmCommonParams {
+  /**
+   * 当前操作人的openUserId(对于公海中未分配的客户,需为公海管理员身份)
+   */
+  currentOpenUserId: string
+  /**
+   * 对象的api_name
+   */
+  apiName: string
+}
+
+export interface ICrmSearchQueryCondition {
+  /**
+   * term_condition:表示精确匹配(目前只支持这种)
+   */
+  conditionType: "term_condition"
+  conditions: {
+    [name: string]: any
+  }
+}
+
+export interface ICrmSearchQueryRangeCondition {
+  fieldName: string
+  from: string
+  to: string
+}
+
+export interface ICrmSearchQueryOrder {
+  /**
+   * true 表示正序 false 表示倒序
+   */
+  ascending: boolean
+  /**
+   * 字段名
+   */
+  field: string
+}
+
+export interface ICrmSearchQuery {
+  currentOpenUserId: string
+  apiName: string
+  conditions: ICrmSearchQueryCondition[]
+  dataProjection: {
+    fieldNames: string[]
+  }
+  limit: number
+  offset: number
+  orders: ICrmSearchQueryOrder
+  rangeConditions: ICrmSearchQueryRangeCondition[]
+}
+
+export interface ICrmDataQueryParams extends ICrmCommonParams {
+  searchQuery: ICrmSearchQuery
+}
+
 export interface fxiaokeOptions {
   /**
    * 是否开启调试信息
@@ -33,6 +88,12 @@ export class fxiaoke extends RequestBase.RequestBase {
    * 企业应用访问公司合法性凭证到期时间
    */
   corpAccessTokenDeadline: number = 0
+  commonRequestOptions = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  }
 
   constructor(options: fxiaokeOptions) {
     super(options.debug)
@@ -206,17 +267,37 @@ export class fxiaoke extends RequestBase.RequestBase {
   crmObjectDescribe(currentOpenUserId: string, apiName: string) {
     return this.initCorpAccessToken().then(() => {
       return this.request(`https://open.fxiaoke.com/cgi/crm/object/describe`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          corpAccessToken: this.corpAccessToken,
-          corpId: this.corpId,
-          currentOpenUserId: currentOpenUserId,
-          apiName: apiName,
-        })
+        ...this.commonRequestOptions,
+        ...{
+          body: JSON.stringify({
+            corpAccessToken: this.corpAccessToken,
+            corpId: this.corpId,
+            currentOpenUserId: currentOpenUserId,
+            apiName: apiName,
+          })
+        }
       })
     })
   }
+  /**
+   * 查询对象数据
+   * @see http://open.fxiaoke.com/wiki.html#artiId=207
+   * @param params 请求参数
+   */
+  crmDataQuery(params: ICrmDataQueryParams) {
+    return this.initCorpAccessToken().then(() => {
+      return this.request(`https://open.fxiaoke.com/cgi/crm/data/query`, {
+        ...this.commonRequestOptions,
+        ...{
+          body: JSON.stringify({
+            corpAccessToken: this.corpAccessToken,
+            corpId: this.corpId,
+            currentOpenUserId: params.currentOpenUserId,
+            apiName: params.apiName,
+          })
+        }
+      })
+    })
+  }
+
 }
