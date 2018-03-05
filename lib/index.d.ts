@@ -1,4 +1,4 @@
-import * as RequestBase from 'irequest';
+import * as RequestBase from "irequest";
 export interface ICrmCommonParams {
     /**
      * 当前操作人的openUserId(对于公海中未分配的客户,需为公海管理员身份)
@@ -167,8 +167,8 @@ export interface ICrmObjectList extends ICommomReturn {
     }[];
 }
 export interface IEmbeddedFieldDesc {
-    type: 'object_reference' | 'email' | 'phone_number' | 'true_or_false' | 'text' | 'long_text' | 'date_time' | 'number' | 'select_one' | 'select_many' | 'file_attachment' | 'image' | 'employee' | 'country' | 'province' | 'city' | 'district';
-    define_type: 'system' | 'package' | 'custom';
+    type: "object_reference" | "email" | "phone_number" | "true_or_false" | "text" | "long_text" | "date_time" | "number" | "select_one" | "select_many" | "file_attachment" | "image" | "employee" | "country" | "province" | "city" | "district";
+    define_type: "system" | "package" | "custom";
     is_index: boolean;
     round_mode: number;
     length: number;
@@ -186,7 +186,7 @@ export interface IFieldDesc {
     /**
      * 字段类型
      */
-    type: 'object_reference' | 'email' | 'phone_number' | 'true_or_false' | 'text' | 'long_text' | 'date_time' | 'number' | 'select_one' | 'select_many' | 'embedded_object_list' | 'file_attachment' | 'image' | 'employee' | 'country' | 'province' | 'city' | 'district';
+    type: "object_reference" | "email" | "phone_number" | "true_or_false" | "text" | "long_text" | "date_time" | "number" | "select_one" | "select_many" | "embedded_object_list" | "file_attachment" | "image" | "employee" | "country" | "province" | "city" | "district";
     /**
      * 内嵌字段
      */
@@ -197,7 +197,7 @@ export interface IFieldDesc {
      * 定义类型
      * system:系统内置，package:包（业务应用）定义，custom:企业客户定义
      */
-    define_type: 'system' | 'package' | 'custom';
+    define_type: "system" | "package" | "custom";
     /**
      * 字段api_name
      * 用于数据操作时对字段的唯一标识
@@ -272,7 +272,7 @@ export declare class fxiaoke extends RequestBase.RequestBase {
     commonRequestOptions: {
         method: string;
         headers: {
-            'Content-Type': string;
+            "Content-Type": string;
         };
     };
     constructor(options: fxiaokeOptions);
