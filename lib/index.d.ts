@@ -1,14 +1,5 @@
 import * as RequestBase from "irequest";
-export interface ICrmCommonParams {
-    /**
-     * 当前操作人的openUserId(对于公海中未分配的客户,需为公海管理员身份)
-     */
-    currentOpenUserId: string;
-    /**
-     * 对象的api_name
-     */
-    apiName: string;
-}
+export declare type TGender = "M" | "F";
 export interface ICrmSearchQueryCondition {
     /**
      * term_condition:表示精确匹配(目前只支持这种)
@@ -20,8 +11,8 @@ export interface ICrmSearchQueryCondition {
 }
 export interface ICrmSearchQueryRangeCondition {
     fieldName: string;
-    from: string;
-    to: string;
+    from: number;
+    to: number;
 }
 export interface ICrmSearchQueryOrder {
     /**
@@ -33,20 +24,15 @@ export interface ICrmSearchQueryOrder {
      */
     field: string;
 }
-export interface ICrmSearchQuery {
-    currentOpenUserId: string;
-    apiName: string;
+export interface ICrmDataQueryParams {
+    offset: number;
+    limit: number;
     conditions: ICrmSearchQueryCondition[];
     dataProjection: {
         fieldNames: string[];
     };
-    limit: number;
-    offset: number;
-    orders: ICrmSearchQueryOrder;
     rangeConditions: ICrmSearchQueryRangeCondition[];
-}
-export interface ICrmDataQueryParams extends ICrmCommonParams {
-    searchQuery: ICrmSearchQuery;
+    orders: ICrmSearchQueryOrder;
 }
 export interface fxiaokeOptions {
     /**
@@ -65,6 +51,10 @@ export interface fxiaokeOptions {
      * 企业应用获得的公司永久授权码
      */
     permanentCode: string;
+    /**
+     * 当前操作用户
+     */
+    currentOpenUserId: string;
 }
 export interface ICommomReturn {
     /**
@@ -151,6 +141,96 @@ export interface IUserSimpleList extends ICommomReturn {
         name: string;
     }[];
 }
+export interface IUserList extends ICommomReturn {
+    userlist: {
+        /**
+         * 开放平台员工帐号
+         */
+        openUserId: string;
+        /**
+         * 员工姓名
+         */
+        name: string;
+        /**
+         * 昵称
+         */
+        nickName: string;
+        /**
+         * 是否离职
+         */
+        isStop: number;
+        /**
+         * 邮箱
+         */
+        email: string;
+        /**
+         * 手机号
+         */
+        mobile: string;
+        /**
+         * 员工性别：M(男) F(女)
+         */
+        gender: TGender;
+        /**
+         * 员工职位
+         */
+        position: string;
+        /**
+         * 头像文件ID
+         */
+        profileImageUrl: string;
+        /**
+         * 员工所属部门及其父部门ID列表
+         */
+        departmentIds: number[];
+        /**
+         * 员工主属部门ID
+         */
+        mainDepartmentId: number;
+        /**
+         * 员工附属部门ID列表
+         */
+        attachingDepartmentIds: number[];
+        /**
+         * 员工 QQ 号
+         */
+        qq: string;
+        /**
+         * 员工微信号
+         */
+        weixin: string;
+        /**
+         * 员工编号
+         */
+        employeeNumber: string;
+        /**
+         * 入职日期
+         */
+        hireDate: string;
+        /**
+         * 员工生日
+         */
+        birthDate: string;
+        /**
+         * 参加工作日期
+         */
+        startWorkDate: string;
+        /**
+         * 创建时间
+         */
+        createTime: number;
+        /**
+         * 汇报对象
+         */
+        leaderId: string;
+    }[];
+}
+export interface IUserAdd extends ICommomReturn {
+    /**
+     * 员工ID
+     */
+    openUserId: string;
+}
 export interface ICrmObjectList extends ICommomReturn {
     /**
      * 对象列表（对象类型数组）
@@ -168,8 +248,14 @@ export interface ICrmObjectList extends ICommomReturn {
 }
 export interface IEmbeddedFieldDesc {
     type: "object_reference" | "email" | "phone_number" | "true_or_false" | "text" | "long_text" | "date_time" | "number" | "select_one" | "select_many" | "file_attachment" | "image" | "employee" | "country" | "province" | "city" | "district";
+    target_related_list_name: string;
+    target_related_list_label: string;
+    action_on_target_delete: string;
     define_type: "system" | "package" | "custom";
+    date_format: string;
+    id: string;
     is_index: boolean;
+    create_time: number;
     round_mode: number;
     length: number;
     is_need_convert: boolean;
@@ -180,7 +266,14 @@ export interface IEmbeddedFieldDesc {
     pattern: string;
     api_name: string;
     label: string;
+    is_single: boolean;
+    is_index_field: boolean;
     description: string;
+    option_id: string;
+    options: {
+        label: string;
+        value: string;
+    }[];
 }
 export interface IFieldDesc {
     /**
@@ -255,6 +348,30 @@ export interface ICrmDataQuery {
         [name: string]: any;
     }[];
 }
+export interface ICrmDataGet extends ICommomReturn {
+    data: {
+        [name: string]: any;
+    };
+}
+export interface ICrmDataCreate extends ICommomReturn {
+    dataId: string;
+}
+export interface IUserInfo {
+    account: string;
+    password: string;
+    name: string;
+    fullName: string;
+    position: string;
+    gender: TGender;
+    mobile: string;
+    email?: string;
+    mainDepartmentId: number;
+    attachingDepartmentIds: number[];
+    employeeNumber: string;
+    hireDate?: string;
+    birthDate?: string;
+    startWorkDate: string;
+}
 export declare class fxiaoke extends RequestBase.RequestBase {
     options: fxiaokeOptions;
     /**
@@ -314,23 +431,62 @@ export declare class fxiaoke extends RequestBase.RequestBase {
      */
     userSimpleList(departmentId: number, fetchChild?: boolean): Promise<IUserSimpleList>;
     /**
+     * 获取部门下成员信息(详细)
+     * @see http://open.fxiaoke.com/wiki.html#artiId=22
+     * @param departmentId 部门ID, 为非负整数
+     * @param fetchChild 如果为true，则同时获取其所有子部门员工; 如果为false或者不传，则只获取当前部门员工
+     * @param showDepartmentIdsDetail 如果为true，则会返回员工主属部门(mainDepartmentId)与附属部门(attachingDepartmentIds)
+     */
+    userList(departmentId: number, fetchChild?: boolean, showDepartmentIdsDetail?: boolean): Promise<IUserList>;
+    /**
+     * 添加成员
+     * @see http://open.fxiaoke.com/wiki.html#artiId=35
+     * @param user 二级对象(人员实体)
+     */
+    userAdd(user: IUserInfo): Promise<IUserAdd>;
+    /**
      * 获取企业CRM对象列表(包含预置对象和自定义对象)
      *
      * @see http://open.fxiaoke.com/wiki.html#artiId=207
-     * @param currentOpenUserId 当前操作人的openUserId
      */
-    crmObjectList(currentOpenUserId: string): Promise<ICrmObjectList>;
+    crmObjectList(): Promise<ICrmObjectList>;
     /**
      * 获取对象描述
      * @see http://open.fxiaoke.com/wiki.html#artiId=207
-     * @param currentOpenUserId 当前操作人的openUserId
      * @param apiName 对象的api_name
      */
-    crmObjectDescribe(currentOpenUserId: string, apiName: string): Promise<ICrmObjectDescribe>;
+    crmObjectDescribe(apiName: string): Promise<ICrmObjectDescribe>;
     /**
      * 查询对象数据
      * @see http://open.fxiaoke.com/wiki.html#artiId=207
+     * @param apiName 对象的api_name
      * @param params 请求参数
      */
-    crmDataQuery(params: ICrmDataQueryParams): Promise<ICrmDataQuery>;
+    crmDataQuery(apiName: string, searchQuery: ICrmDataQueryParams): Promise<ICrmDataQuery>;
+    /**
+     * 根据Id获取对象数据
+     * @see http://open.fxiaoke.com/wiki.html#artiId=207
+     * @param apiName 对象的api_name; SalesOrderProductObj(订单关联产品)对象不支持该操作
+     * @param dataId 数据Id
+     */
+    crmDataGet(apiName: string, dataId: string): Promise<ICrmDataGet>;
+    /**
+     * 新增对象数据
+     * @see http://open.fxiaoke.com/wiki.html#artiId=207
+     * @param apiName 对象的api_name
+     * @param data 对象数据Map（和对象描述中字段一一对应）
+     */
+    crmDataCreate(apiName: string, data: {
+        [fieldName: string]: any;
+    }): Promise<ICrmDataCreate>;
+    /**
+     * 更新对象数据
+     * @see http://open.fxiaoke.com/wiki.html#artiId=207
+     * @param apiName 对象的api_name
+     * @param dataId 数据Id
+     * @param data 对象数据Map（和对象描述中字段一一对应）
+     */
+    crmDataUpdate(apiName: string, dataId: string, data: {
+        [fieldName: string]: any;
+    }): Promise<ICrmDataCreate>;
 }
