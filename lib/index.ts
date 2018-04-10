@@ -476,7 +476,7 @@ export class fxiaoke extends RequestBase.RequestBase {
         }
         this.corpAccessToken = reply["corpAccessToken"];
         this.corpId = reply["corpId"];
-        this.corpAccessTokenDeadline += now + reply["expiresIn"] * 1000;
+        this.corpAccessTokenDeadline = now + reply["expiresIn"] * 1000;
       });
     });
   }
