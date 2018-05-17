@@ -775,4 +775,24 @@ export class fxiaoke extends RequestBase.RequestBase {
       });
     }) as Promise<ICrmDataCreate>;
   }
+  /**
+   * 删除对象数据
+   * @see http://open.fxiaoke.com/wiki.html#artiId=207
+   * @param apiName 对象的api_name
+   * @param dataId 数据Id
+   */
+  crmDataDelete(apiName: string, dataId: string): Promise<ICrmDataCreate> {
+    return this.initCorpAccessToken().then(() => {
+      return this.request(`${ApiHost}/cgi/crm/data/delete`, {
+        ...this.commonRequestOptions,
+        body: JSON.stringify({
+          corpAccessToken: this.corpAccessToken,
+          corpId: this.corpId,
+          currentOpenUserId: this.options.currentOpenUserId,
+          apiName: apiName,
+          dataId: dataId
+        })
+      });
+    }) as Promise<ICrmDataCreate>;
+  }
 }

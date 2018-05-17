@@ -489,4 +489,11 @@ export declare class fxiaoke extends RequestBase.RequestBase {
     crmDataUpdate(apiName: string, dataId: string, data: {
         [fieldName: string]: any;
     }): Promise<ICrmDataCreate>;
+    /**
+     * 删除对象数据
+     * @see http://open.fxiaoke.com/wiki.html#artiId=207
+     * @param apiName 对象的api_name
+     * @param dataId 数据Id
+     */
+    crmDataDelete(apiName: string, dataId: string): Promise<ICrmDataCreate>;
 }

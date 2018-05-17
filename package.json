@@ -1,6 +1,6 @@
 {
   "name": "fxiaoke-api",
-  "version": "0.0.9",
+  "version": "0.0.12",
   "description": "纷享开放 API",
   "main": "lib/index",
   "typings": "lib/index.d.ts",
@@ -28,7 +28,9 @@
     "gulp": "^3.9.1",
     "gulp-examplejs": "0.0.9",
     "gulp-jdists": "^2.0.17",
+    "gulp-linenum": "0.0.2",
     "gulp-rename": "^1.2.2",
+    "gulp-replace": "^1.0.0",
     "gulp-typescript": "^3.1.6",
     "istanbul": "^0.3.17",
     "merge2": "^1.1.0",
