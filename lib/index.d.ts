@@ -1,10 +1,10 @@
-import * as RequestBase from "irequest";
-export declare type TGender = "M" | "F";
+import * as RequestBase from 'irequest';
+export declare type TGender = 'M' | 'F';
 export interface ICrmSearchQueryCondition {
     /**
      * term_condition:表示精确匹配(目前只支持这种)
      */
-    conditionType: "term_condition";
+    conditionType: 'term_condition';
     conditions: {
         [name: string]: any;
     };
@@ -247,11 +247,11 @@ export interface ICrmObjectList extends ICommomReturn {
     }[];
 }
 export interface IEmbeddedFieldDesc {
-    type: "object_reference" | "email" | "phone_number" | "true_or_false" | "text" | "long_text" | "date_time" | "number" | "select_one" | "select_many" | "file_attachment" | "image" | "employee" | "country" | "province" | "city" | "district";
+    type: 'object_reference' | 'email' | 'phone_number' | 'true_or_false' | 'text' | 'long_text' | 'date_time' | 'number' | 'select_one' | 'select_many' | 'file_attachment' | 'image' | 'employee' | 'country' | 'province' | 'city' | 'district';
     target_related_list_name: string;
     target_related_list_label: string;
     action_on_target_delete: string;
-    define_type: "system" | "package" | "custom";
+    define_type: 'system' | 'package' | 'custom';
     date_format: string;
     id: string;
     is_index: boolean;
@@ -279,7 +279,7 @@ export interface IFieldDesc {
     /**
      * 字段类型
      */
-    type: "object_reference" | "email" | "phone_number" | "true_or_false" | "text" | "long_text" | "date_time" | "number" | "select_one" | "select_many" | "embedded_object_list" | "file_attachment" | "image" | "employee" | "country" | "province" | "city" | "district";
+    type: 'object_reference' | 'email' | 'phone_number' | 'true_or_false' | 'text' | 'long_text' | 'date_time' | 'number' | 'select_one' | 'select_many' | 'embedded_object_list' | 'file_attachment' | 'image' | 'employee' | 'country' | 'province' | 'city' | 'district';
     /**
      * 内嵌字段
      */
@@ -290,7 +290,7 @@ export interface IFieldDesc {
      * 定义类型
      * system:系统内置，package:包（业务应用）定义，custom:企业客户定义
      */
-    define_type: "system" | "package" | "custom";
+    define_type: 'system' | 'package' | 'custom';
     /**
      * 字段api_name
      * 用于数据操作时对字段的唯一标识
@@ -328,6 +328,10 @@ export interface IFieldDesc {
      * 字段显示名称
      */
     label: string;
+    /**
+     * 最大长度
+     */
+    max_length?: number;
 }
 export interface ICrmObjectDescribe extends ICommomReturn {
     objectDesc: {
@@ -389,7 +393,7 @@ export declare class fxiaoke extends RequestBase.RequestBase {
     commonRequestOptions: {
         method: string;
         headers: {
-            "Content-Type": string;
+            'Content-Type': string;
         };
     };
     constructor(options: fxiaokeOptions);

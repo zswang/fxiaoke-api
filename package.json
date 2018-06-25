@@ -1,6 +1,6 @@
 {
   "name": "fxiaoke-api",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "纷享开放 API",
   "main": "lib/index",
   "typings": "lib/index.d.ts",
