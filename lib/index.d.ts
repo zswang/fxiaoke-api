@@ -32,7 +32,7 @@ export interface ICrmDataQueryParams {
         fieldNames: string[];
     };
     rangeConditions?: ICrmSearchQueryRangeCondition[];
-    orders?: ICrmSearchQueryOrder;
+    orders?: ICrmSearchQueryOrder[];
 }
 export interface fxiaokeOptions {
     /**
