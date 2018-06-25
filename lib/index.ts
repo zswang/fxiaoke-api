@@ -25,14 +25,14 @@ export interface ICrmSearchQueryOrder {
   field: string
 }
 export interface ICrmDataQueryParams {
-  offset: number
-  limit: number
-  conditions: ICrmSearchQueryCondition[]
-  dataProjection: {
+  offset?: number
+  limit?: number
+  conditions?: ICrmSearchQueryCondition[]
+  dataProjection?: {
     fieldNames: string[]
   }
-  rangeConditions: ICrmSearchQueryRangeCondition[]
-  orders: ICrmSearchQueryOrder
+  rangeConditions?: ICrmSearchQueryRangeCondition[]
+  orders?: ICrmSearchQueryOrder
 }
 export interface fxiaokeOptions {
   /**
@@ -128,6 +128,27 @@ export interface IDepartmentList extends ICommomReturn {
 export interface IDepartmentAdd extends ICommomReturn {
   departmentId: number
   order: number
+}
+export interface IDepartmentDetail extends ICommomReturn {
+  department: {
+    enterpriseId: number
+    departmentId: number
+    parentDepartmentId: number
+    name: string
+    nameSpell: string
+    nameOrder: string
+    departmentOrder: number
+    isStop: boolean
+    stopTime: number
+    description: string
+    keywords: string[]
+    principalId: string
+    createTime: number
+    updateTime: number
+    ancestors: number[]
+    status: number
+    hideSuperWorkInfo: boolean
+  }
 }
 export interface IUserSimpleList extends ICommomReturn {
   userlist: {
@@ -395,7 +416,7 @@ export interface ICrmDataGet extends ICommomReturn {
 export interface ICrmDataCreate extends ICommomReturn {
   dataId: string
 }
-export interface IUserInfo {
+export interface IUserGet {
   account: string
   password: string
   name: string
@@ -410,6 +431,24 @@ export interface IUserInfo {
   hireDate?: string
   birthDate?: string
   startWorkDate: string
+}
+export interface IAccount extends ICommomReturn {
+  openUserId: string
+  account: string
+  name: string
+  nickName: string
+  isStop: boolean
+  mobile: string
+  gender: TGender
+  position: string
+  profileImageUrl: string
+  departmentIds: number[]
+  employeeNumber: string
+  hireDate?: string
+  birthDate?: string
+  startWorkDate: string
+  createTime: number
+  leaderId: string
 }
 const ApiHost = 'https://open.fxiaoke.com'
 export class fxiaoke extends RequestBase.RequestBase {
@@ -474,7 +513,7 @@ export class fxiaoke extends RequestBase.RequestBase {
         if (reply.errorCode !== 0) {
           return Promise.reject({
             status: 400,
-            stack: ['a59f6e6a42be458c86a3b5293ed23b15'],
+            stack: ['b5017024dea4e14d41051e81513b6866'],
             desc: reply['errorMessage'],
           })
         }
@@ -542,6 +581,24 @@ export class fxiaoke extends RequestBase.RequestBase {
     }) as Promise<IDepartmentAdd>
   }
   /**
+   * 获取部门详情
+   * @param departmentId 部门 ID
+   * @see http://open.fxiaoke.com/wiki.html#artiId=219
+   */
+  departmentDetail(departmentId: number): Promise<IDepartmentDetail> {
+    return this.initCorpAccessToken().then(() => {
+      return this.request(`${ApiHost}/cgi/department/detail`, {
+        ...this.commonRequestOptions,
+        body: JSON.stringify({
+          corpAccessToken: this.corpAccessToken,
+          corpId: this.corpId,
+          currentOpenUserId: this.options.currentOpenUserId,
+          departmentId: departmentId,
+        }),
+      })
+    }) as Promise<IDepartmentDetail>
+  }
+  /**
    * 获取部门下成员信息(简略)
    * @see http://open.fxiaoke.com/wiki.html#artiId=21
    * @param departmentId 部门ID, 为非负整数
@@ -593,7 +650,7 @@ export class fxiaoke extends RequestBase.RequestBase {
    * @see http://open.fxiaoke.com/wiki.html#artiId=35
    * @param user 二级对象(人员实体)
    */
-  userAdd(user: IUserInfo): Promise<IUserAdd> {
+  userAdd(user: IUserGet): Promise<IUserAdd> {
     return this.initCorpAccessToken().then(() => {
       return this.request(`${ApiHost}/cgi/user/add`, {
         ...this.commonRequestOptions,
@@ -604,6 +661,28 @@ export class fxiaoke extends RequestBase.RequestBase {
         }),
       })
     }) as Promise<IUserAdd>
+  }
+  /**
+   * 获取成员信息
+   * @param openUserId 开放平台员工帐号
+   * @param showDepartmentIdsDetail 如果为true，则会返回员工主属部门(mainDepartmentId)与附属部门(attachingDepartmentIds); 默认值为false
+   * @see http://open.fxiaoke.com/wiki.html#artiId=23
+   */
+  userGet(
+    openUserId: string,
+    showDepartmentIdsDetail: boolean = false
+  ): Promise<IUserGet> {
+    return this.initCorpAccessToken().then(() => {
+      return this.request(`${ApiHost}/cgi/user/get`, {
+        ...this.commonRequestOptions,
+        body: JSON.stringify({
+          corpAccessToken: this.corpAccessToken,
+          corpId: this.corpId,
+          openUserId: openUserId,
+          showDepartmentIdsDetail: showDepartmentIdsDetail,
+        }),
+      })
+    }) as Promise<IUserGet>
   }
   /**
    * 获取企业CRM对象列表(包含预置对象和自定义对象)
