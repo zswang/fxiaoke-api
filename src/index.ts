@@ -165,7 +165,7 @@ export interface IDepartmentDetail extends ICommomReturn {
 }
 
 export interface IUserSimpleList extends ICommomReturn {
-  userlist: {
+  userList: {
     /**
      * 开放平台员工帐号
      */
@@ -178,7 +178,7 @@ export interface IUserSimpleList extends ICommomReturn {
 }
 
 export interface IUserList extends ICommomReturn {
-  userlist: {
+  userList: {
     /**
      * 开放平台员工帐号
      */
