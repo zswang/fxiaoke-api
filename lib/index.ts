@@ -388,6 +388,16 @@ export interface IFieldDesc {
    * 最大长度
    */
   max_length?: number
+  /**
+   * 选项
+   */
+  options?: {
+    label: string
+    value: string
+    child_options?: {
+      [name: string]: string[]
+    }[]
+  }[]
 }
 export interface ICrmObjectDescribe extends ICommomReturn {
   objectDesc: {
@@ -513,7 +523,7 @@ export class fxiaoke extends RequestBase.RequestBase {
         if (reply.errorCode !== 0) {
           return Promise.reject({
             status: 400,
-            stack: ['b5017024dea4e14d41051e81513b6866'],
+            stack: ['1f584c397cfda5acfd777cc270c36d4b'],
             desc: reply['errorMessage'],
           })
         }

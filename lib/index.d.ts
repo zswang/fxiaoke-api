@@ -353,6 +353,16 @@ export interface IFieldDesc {
      * 最大长度
      */
     max_length?: number;
+    /**
+     * 选项
+     */
+    options?: {
+        label: string;
+        value: string;
+        child_options?: {
+            [name: string]: string[];
+        }[];
+    }[];
 }
 export interface ICrmObjectDescribe extends ICommomReturn {
     objectDesc: {
