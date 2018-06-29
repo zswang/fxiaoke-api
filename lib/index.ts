@@ -162,89 +162,90 @@ export interface IUserSimpleList extends ICommomReturn {
     name: string
   }[]
 }
+export interface IUserInfo {
+  /**
+   * 开放平台员工帐号
+   */
+  openUserId: string
+  /**
+   * 员工姓名
+   */
+  name: string
+  /**
+   * 昵称
+   */
+  nickName: string
+  /**
+   * 是否离职
+   */
+  isStop: number
+  /**
+   * 邮箱
+   */
+  email: string
+  /**
+   * 手机号
+   */
+  mobile: string
+  /**
+   * 员工性别：M(男) F(女)
+   */
+  gender: TGender
+  /**
+   * 员工职位
+   */
+  position: string
+  /**
+   * 头像文件ID
+   */
+  profileImageUrl: string
+  /**
+   * 员工所属部门及其父部门ID列表
+   */
+  departmentIds: number[]
+  /**
+   * 员工主属部门ID
+   */
+  mainDepartmentId: number
+  /**
+   * 员工附属部门ID列表
+   */
+  attachingDepartmentIds: number[]
+  /**
+   * 员工 QQ 号
+   */
+  qq: string
+  /**
+   * 员工微信号
+   */
+  weixin: string
+  /**
+   * 员工编号
+   */
+  employeeNumber: string
+  /**
+   * 入职日期
+   */
+  hireDate: string
+  /**
+   * 员工生日
+   */
+  birthDate: string
+  /**
+   * 参加工作日期
+   */
+  startWorkDate: string
+  /**
+   * 创建时间
+   */
+  createTime: number
+  /**
+   * 汇报对象
+   */
+  leaderId: string
+}
 export interface IUserList extends ICommomReturn {
-  userList: {
-    /**
-     * 开放平台员工帐号
-     */
-    openUserId: string
-    /**
-     * 员工姓名
-     */
-    name: string
-    /**
-     * 昵称
-     */
-    nickName: string
-    /**
-     * 是否离职
-     */
-    isStop: number
-    /**
-     * 邮箱
-     */
-    email: string
-    /**
-     * 手机号
-     */
-    mobile: string
-    /**
-     * 员工性别：M(男) F(女)
-     */
-    gender: TGender
-    /**
-     * 员工职位
-     */
-    position: string
-    /**
-     * 头像文件ID
-     */
-    profileImageUrl: string
-    /**
-     * 员工所属部门及其父部门ID列表
-     */
-    departmentIds: number[]
-    /**
-     * 员工主属部门ID
-     */
-    mainDepartmentId: number
-    /**
-     * 员工附属部门ID列表
-     */
-    attachingDepartmentIds: number[]
-    /**
-     * 员工 QQ 号
-     */
-    qq: string
-    /**
-     * 员工微信号
-     */
-    weixin: string
-    /**
-     * 员工编号
-     */
-    employeeNumber: string
-    /**
-     * 入职日期
-     */
-    hireDate: string
-    /**
-     * 员工生日
-     */
-    birthDate: string
-    /**
-     * 参加工作日期
-     */
-    startWorkDate: string
-    /**
-     * 创建时间
-     */
-    createTime: number
-    /**
-     * 汇报对象
-     */
-    leaderId: string
-  }[]
+  userList: IUserInfo[]
 }
 export interface IUserAdd extends ICommomReturn {
   /**
@@ -265,6 +266,13 @@ export interface ICrmObjectList extends ICommomReturn {
      * 对象显示名称
      */
     display_name: string
+  }[]
+}
+export interface IOption {
+  label: string
+  value: string
+  child_options?: {
+    [name: string]: string[]
   }[]
 }
 export interface IEmbeddedFieldDesc {
@@ -308,10 +316,7 @@ export interface IEmbeddedFieldDesc {
   is_index_field: boolean
   description: string
   option_id: string
-  options: {
-    label: string
-    value: string
-  }[]
+  options: IOption[]
 }
 export interface IFieldDesc {
   /**
@@ -325,6 +330,7 @@ export interface IFieldDesc {
     | 'text'
     | 'long_text'
     | 'date_time'
+    | 'date'
     | 'number'
     | 'select_one'
     | 'select_many'
@@ -336,6 +342,20 @@ export interface IFieldDesc {
     | 'province'
     | 'city'
     | 'district'
+    | 'record_type'
+    | 'currency'
+    | 'auto_number'
+    | 'count'
+    | 'quote'
+    | 'master_detail'
+    | 'lock_rule'
+    | 'use_scope'
+    | 'department'
+    | 'array'
+    | 'formula'
+    | 'group'
+    | 'location'
+    | 'percentile'
   /**
    * 内嵌字段
    */
@@ -391,13 +411,7 @@ export interface IFieldDesc {
   /**
    * 选项
    */
-  options?: {
-    label: string
-    value: string
-    child_options?: {
-      [name: string]: string[]
-    }[]
-  }[]
+  options?: IOption[]
 }
 export interface ICrmObjectDescribe extends ICommomReturn {
   objectDesc: {
@@ -523,7 +537,7 @@ export class fxiaoke extends RequestBase.RequestBase {
         if (reply.errorCode !== 0) {
           return Promise.reject({
             status: 400,
-            stack: ['1f584c397cfda5acfd777cc270c36d4b'],
+            stack: ['68b97c9ac349f0a2b0edb081cad03437'],
             desc: reply['errorMessage'],
           })
         }
