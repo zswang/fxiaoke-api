@@ -1,5 +1,6 @@
 import * as RequestBase from 'irequest';
 export declare type TGender = 'M' | 'F';
+export declare type TApprovalState = 'in_progress' | 'pass' | 'error' | 'cancel' | 'reject';
 export interface ICrmSearchQueryCondition {
     /**
      * term_condition:表示精确匹配(目前只支持这种)
@@ -424,6 +425,29 @@ export interface IAccount extends ICommomReturn {
     createTime: number;
     leaderId: string;
 }
+export interface IInstance {
+    instanceId: string;
+    instanceName: string;
+    dataId: string;
+    triggerType: string;
+    state: string;
+    createTime: number;
+    lastModifyTime: number;
+    endTime: number;
+    flowApiName: string;
+    applicantOpenUserId: string;
+    cancelTime: number;
+    objectApiName: string;
+}
+export interface ICrmObjectApprovalInstancesQuery extends ICommomReturn {
+    instances: IInstance[];
+}
+export interface ICrmApprovalInstancesQuery extends ICommomReturn {
+    queryResult: {
+        total: number;
+        instanceList: IInstance[];
+    };
+}
 export declare class fxiaoke extends RequestBase.RequestBase {
     options: fxiaokeOptions;
     /**
@@ -561,4 +585,22 @@ export declare class fxiaoke extends RequestBase.RequestBase {
      * @param dataId 数据Id
      */
     crmDataDelete(apiName: string, dataId: string): Promise<ICrmDataCreate>;
+    /**
+     * 查询 CRM 对象实例关联的审批实例
+     * @see http://open.fxiaoke.com/wiki.html#artiId=186
+     * @param dataId 数据Id
+     */
+    crmObjectApprovalInstancesQuery(dataId: string): Promise<ICrmObjectApprovalInstancesQuery>;
+    /**
+     * 查询指定审批规则的审批实例列表
+     * @see http://open.fxiaoke.com/wiki.html#artiId=186
+     * @param flowApiName 审批流程 apiName
+     * @param state 流程状态 流程实例状态 in_progress 进行中,pass 通过,error 异常,cancel 取消,reject 拒绝
+     * @param startTime 开始时间(时间戳形式)
+     * @param endTime 结束时间(时间戳形式)
+     * @param objectApiName 数据对象apiName
+     * @param pageNumber 页码默认为 1
+     * @param pageSize 分页大小默认 20
+     */
+    crmApprovalInstancesQuery(flowApiName: string, state?: TApprovalState, startTime?: string, endTime?: string, objectApiName?: string, pageNumber?: number, pageSize?: number): Promise<ICrmApprovalInstancesQuery>;
 }
