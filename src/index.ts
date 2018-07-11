@@ -605,13 +605,13 @@ export class fxiaoke extends RequestBase.RequestBase {
           return Promise.reject({
             status: 400,
             stack: ['<!--jdists encoding="md5">^linenum</jdists-->'],
-            desc: reply['errorMessage'],
+            desc: reply.errorMessage,
           })
         }
 
-        this.corpAccessToken = reply['corpAccessToken']
-        this.corpId = reply['corpId']
-        this.corpAccessTokenDeadline = now + reply['expiresIn'] * 1000
+        this.corpAccessToken = reply.corpAccessToken
+        this.corpId = reply.corpId
+        this.corpAccessTokenDeadline = now + reply.expiresIn * 1000
       })
     })
   }
