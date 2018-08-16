@@ -446,6 +446,7 @@ export interface ICrmDataGet extends ICommomReturn {
 export interface ICrmDataCreate extends ICommomReturn {
   dataId: string
 }
+export interface ICrmDataChangeOwner extends ICommomReturn {}
 export interface IUserGet {
   account: string
   password: string
@@ -566,7 +567,7 @@ export class fxiaoke extends RequestBase.RequestBase {
         if (reply.errorCode !== 0) {
           return Promise.reject({
             status: 400,
-            stack: ['09b1dcf17ef6169d0bd0cf1408299ca9'],
+            stack: ['accee513c586e3815d8a10aea3bee491'],
             desc: reply.errorMessage,
           })
         }
@@ -867,6 +868,33 @@ export class fxiaoke extends RequestBase.RequestBase {
         }),
       })
     }) as Promise<ICrmDataCreate>
+  }
+  /**
+   * 变更负责人
+   * 对应公海中未分配的客户的【分配】操作
+   * @see http://open.fxiaoke.com/wiki.html#artiId=207
+   * @param apiName 对象的api_name
+   * @param dataId 数据Id
+   * @param ownerOpenUserId 负责人的openUserId(对于公海中未分配的客户,只能分配给公海管理员和公海成员)
+   */
+  crmDataChangeOwner(
+    apiName: string,
+    dataId: string,
+    ownerOpenUserId: string
+  ): Promise<ICrmDataChangeOwner> {
+    return this.initCorpAccessToken().then(() => {
+      return this.request(`${ApiHost}/cgi/crm/data/changeOwner`, {
+        ...this.commonRequestOptions,
+        body: JSON.stringify({
+          corpAccessToken: this.corpAccessToken,
+          corpId: this.corpId,
+          currentOpenUserId: this.options.currentOpenUserId,
+          apiName: apiName,
+          dataId: dataId,
+          ownerOpenUserId: ownerOpenUserId,
+        }),
+      })
+    }) as Promise<ICrmDataChangeOwner>
   }
   /**
    * 删除对象数据

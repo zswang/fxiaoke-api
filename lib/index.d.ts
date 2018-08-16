@@ -391,6 +391,8 @@ export interface ICrmDataGet extends ICommomReturn {
 export interface ICrmDataCreate extends ICommomReturn {
     dataId: string;
 }
+export interface ICrmDataChangeOwner extends ICommomReturn {
+}
 export interface IUserGet {
     account: string;
     password: string;
@@ -578,6 +580,15 @@ export declare class fxiaoke extends RequestBase.RequestBase {
     crmDataUpdate(apiName: string, dataId: string, data: {
         [fieldName: string]: any;
     }): Promise<ICrmDataCreate>;
+    /**
+     * 变更负责人
+     * 对应公海中未分配的客户的【分配】操作
+     * @see http://open.fxiaoke.com/wiki.html#artiId=207
+     * @param apiName 对象的api_name
+     * @param dataId 数据Id
+     * @param ownerOpenUserId 负责人的openUserId(对于公海中未分配的客户,只能分配给公海管理员和公海成员)
+     */
+    crmDataChangeOwner(apiName: string, dataId: string, ownerOpenUserId: string): Promise<ICrmDataChangeOwner>;
     /**
      * 删除对象数据
      * @see http://open.fxiaoke.com/wiki.html#artiId=207
