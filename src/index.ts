@@ -450,7 +450,7 @@ export interface ICrmObjectDescribe extends ICommomReturn {
   }
 }
 
-export interface ICrmDataQuery {
+export interface ICrmDataQuery extends ICommomReturn {
   /**
    * 总记录数
    */
